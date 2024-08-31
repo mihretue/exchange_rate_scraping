@@ -2,8 +2,15 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import pandas as pd
-from ..models import ScrapedData
 
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bank_scrape.settings')
+
+django.setup()
+
+from api.models import ScrapedData
 
 website = "https://dashenbanksc.com/daily-exchange-rate"
 path = r'C:\Users\Mihretu\Downloads\chromedriver-win64/chromedriver.exe'
@@ -66,11 +73,14 @@ data = [
 transposed_data = list(map(list, zip(*data)))
 print (transposed_data)
 
-df = pd.DataFrame(transposed_data, columns=column_name)
+df = pd.DataFrame(transposed_data)
 
 df_records = df.to_dict('records')
 
 for record in df_records:
-    ScrapedData.objects.create(data=record)
+    ScrapedData.objects.create(currency_code=record[0],
+        currency_name=record[1],
+        cash_buying=record[2],
+        cash_selling=record[3])
 
 driver.quit()
